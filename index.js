@@ -58,7 +58,7 @@ function checkToken(req, res, next) {
 }
 
 app.post("/auth/register", async (req, res) => {
-  const { name, email, password, confirmpassword } = req.body;
+  const { name, email, password, confirmpassword, isOng } = req.body;
 
   // validations
   if (!name) {
@@ -94,7 +94,8 @@ app.post("/auth/register", async (req, res) => {
   const user = new User({
     name,
     email,
-    password: passwordHash
+    password: passwordHash,
+    isOng
   });
 
   try {
