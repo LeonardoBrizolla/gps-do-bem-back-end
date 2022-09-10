@@ -6,6 +6,10 @@ const jwt = require("jsonwebtoken");
 
 const app = express();
 
+var cors = require("cors");
+
+app.use(cors()); // Use this after the variable declaration
+
 app.set("port", process.env.PORT || 3000);
 var server = app.listen(app.get("port"), function () {
   console.log("Express server listening on port " + server.address().port);
