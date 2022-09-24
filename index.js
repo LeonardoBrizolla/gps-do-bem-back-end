@@ -1,12 +1,12 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+import { config } from "dotenv";
+import express from "express";
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import cors from "cors";
 
+config();
 const app = express();
-
-var cors = require("cors");
 
 app.use(cors()); // Use this after the variable declaration
 
@@ -16,7 +16,7 @@ var server = app.listen(app.get("port"), function () {
 });
 
 // models
-const User = require("./models/User");
+import { User } from "./models/User.js";
 
 // Config JSON response
 app.use(express.json());
@@ -24,6 +24,20 @@ app.use(express.json());
 // Open Route
 app.get("/", (req, res) => {
   res.status(200).json({ msg: "Bem vindo a API!" });
+});
+
+// Open Route
+app.post("/services", async (req, res) => {
+  const { serviceOng } = req.body;
+
+  // check if user exists
+  const user = await User.find({ service: serviceOng });
+
+  if (!user) {
+    return res.status(404).json({ msg: "Serviço não encontrado!" });
+  }
+
+  res.status(200).json({ user });
 });
 
 // Private Route
@@ -58,7 +72,7 @@ function checkToken(req, res, next) {
 }
 
 app.post("/auth/register", async (req, res) => {
-  const { name, email, password, confirmpassword, isOng } = req.body;
+  const { name, email, password, confirmpassword, isOng, service } = req.body;
 
   // validations
   if (!name) {
@@ -67,6 +81,10 @@ app.post("/auth/register", async (req, res) => {
 
   if (!email) {
     return res.status(422).json({ msg: "O email é obrigatório!" });
+  }
+
+  if (!service) {
+    return res.status(422).json({ msg: "O serviço é obrigatório!" });
   }
 
   if (!password) {
@@ -94,6 +112,7 @@ app.post("/auth/register", async (req, res) => {
   const user = new User({
     name,
     email,
+    service,
     password: passwordHash,
     isOng
   });
