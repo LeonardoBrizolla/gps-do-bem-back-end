@@ -31,7 +31,10 @@ app.post("/services", async (req, res) => {
   const { serviceOng } = req.body;
 
   // check if user exists
-  const user = await User.find({ service: serviceOng });
+  const user = await User.find({
+    service: { $regex: serviceOng, $options: "i" },
+    isOng: true
+  });
 
   if (!user) {
     return res.status(404).json({ msg: "Serviço não encontrado!" });
@@ -83,7 +86,7 @@ app.post("/auth/register", async (req, res) => {
     return res.status(422).json({ msg: "O email é obrigatório!" });
   }
 
-  if (!service) {
+  if (!service && isOng) {
     return res.status(422).json({ msg: "O serviço é obrigatório!" });
   }
 
