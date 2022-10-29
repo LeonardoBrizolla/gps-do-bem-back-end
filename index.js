@@ -57,6 +57,19 @@ app.get("/user/:id", checkToken, async (req, res) => {
   res.status(200).json({ user });
 });
 
+app.post("/user", async (req, res) => {
+  const _id = req.body;
+
+  // check if user exists
+  const user = await User.findById(_id);
+
+  if (!user) {
+    return res.status(404).json({ msg: "Usuário não encontrado!" });
+  }
+
+  res.status(200).json({ user });
+});
+
 function checkToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
