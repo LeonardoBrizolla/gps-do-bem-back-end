@@ -5,5 +5,7 @@ export const User = mongoose.model("User", {
   email: String,
   service: String,
   password: String,
-  isOng: Boolean
+  isOng: Boolean,
+  address: String,
+  location: Object,
 });

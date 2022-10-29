@@ -33,7 +33,7 @@ app.post("/services", async (req, res) => {
   // check if user exists
   const user = await User.find({
     service: { $regex: serviceOng, $options: "i" },
-    isOng: true
+    isOng: true,
   });
 
   if (!user) {
@@ -75,7 +75,16 @@ function checkToken(req, res, next) {
 }
 
 app.post("/auth/register", async (req, res) => {
-  const { name, email, password, confirmpassword, isOng, service } = req.body;
+  const {
+    name,
+    email,
+    password,
+    confirmpassword,
+    isOng,
+    service,
+    address,
+    location,
+  } = req.body;
 
   // validations
   if (!name) {
@@ -88,6 +97,14 @@ app.post("/auth/register", async (req, res) => {
 
   if (!service && isOng) {
     return res.status(422).json({ msg: "O serviço é obrigatório!" });
+  }
+
+  if (!address) {
+    return res.status(422).json({ msg: "Endereço é obrigatório!" });
+  }
+
+  if (!location) {
+    return res.status(422).json({ msg: "Localização no MAPA é obrigatório!" });
   }
 
   if (!password) {
@@ -117,7 +134,9 @@ app.post("/auth/register", async (req, res) => {
     email,
     service,
     password: passwordHash,
-    isOng
+    isOng,
+    address,
+    location,
   });
 
   try {
@@ -160,7 +179,7 @@ app.post("/auth/login", async (req, res) => {
 
     const token = jwt.sign(
       {
-        id: user._id
+        id: user._id,
       },
       secret
     );
