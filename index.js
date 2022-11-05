@@ -44,11 +44,27 @@ app.post("/services", async (req, res) => {
 });
 
 // Private Route
-app.get("/user/:id", checkToken, async (req, res) => {
-  const id = req.params.id;
+app.get("/editProfile/:id", async (req, res) => {
+  const _id = req.params.id;
+
+  try {
+    const user = await User.findById(_id, "-password");
+
+    if (!user) {
+      return res.status(404).json({ msg: "Usuário não encontrado!" });
+    }
+
+    res.status(200).json({ user });
+  } catch (err) {
+    return res.status(404).json({ msg: "Usuário não encontrado!" });
+  }
+});
+
+app.post("/user", async (req, res) => {
+  const _id = req.body;
 
   // check if user exists
-  const user = await User.findById(id, "-password");
+  const user = await User.findById(_id, "-password");
 
   if (!user) {
     return res.status(404).json({ msg: "Usuário não encontrado!" });
@@ -57,11 +73,11 @@ app.get("/user/:id", checkToken, async (req, res) => {
   res.status(200).json({ user });
 });
 
-app.post("/user", async (req, res) => {
-  const _id = req.body;
+app.post("/userEmail", async (req, res) => {
+  const email = req.body;
 
   // check if user exists
-  const user = await User.findById(_id);
+  const user = await User.find(email);
 
   if (!user) {
     return res.status(404).json({ msg: "Usuário não encontrado!" });
@@ -112,11 +128,11 @@ app.post("/auth/register", async (req, res) => {
     return res.status(422).json({ msg: "O serviço é obrigatório!" });
   }
 
-  if (!address) {
+  if (!address && isOng) {
     return res.status(422).json({ msg: "Endereço é obrigatório!" });
   }
 
-  if (!location) {
+  if (!location && isOng) {
     return res.status(422).json({ msg: "Localização no MAPA é obrigatório!" });
   }
 
@@ -156,6 +172,82 @@ app.post("/auth/register", async (req, res) => {
     await user.save();
 
     res.status(201).json({ msg: "Usuário criado com sucesso!" });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
+});
+
+app.patch("/editProfile/:id", async (req, res) => {
+  const _id = req.params.id;
+
+  const {
+    name,
+    email,
+    password,
+    confirmpassword,
+    isOng,
+    service,
+    address,
+    location,
+  } = req.body;
+
+  // validations
+  if (!name) {
+    return res.status(422).json({ msg: "O nome é obrigatório!" });
+  }
+
+  if (!email) {
+    return res.status(422).json({ msg: "O email é obrigatório!" });
+  }
+
+  if (!service && isOng) {
+    return res.status(422).json({ msg: "O serviço é obrigatório!" });
+  }
+
+  if (!address && isOng) {
+    return res.status(422).json({ msg: "Endereço é obrigatório!" });
+  }
+
+  if (!location && isOng) {
+    return res.status(422).json({ msg: "Localização no MAPA é obrigatório!" });
+  }
+
+  if (!password) {
+    return res.status(422).json({ msg: "A senha é obrigatória!" });
+  }
+
+  if (password != confirmpassword) {
+    return res
+      .status(422)
+      .json({ msg: "A senha e a confirmação precisam ser iguais!" });
+  }
+
+  // check if user exists
+  // const userExists = await User.findOne({ email: email });
+
+  // if (userExists) {
+  //   return res.status(422).json({ msg: "Por favor, utilize outro e-mail!" });
+  // }
+
+  // create password
+  const salt = await bcrypt.genSalt(12);
+  const passwordHash = await bcrypt.hash(password, salt);
+
+  // create user
+  const newUser = {
+    name: name,
+    email: email,
+    service: service,
+    password: passwordHash,
+    isOng: isOng,
+    address: address,
+    location: location,
+  };
+
+  try {
+    await User.findByIdAndUpdate(_id, newUser);
+
+    res.status(201).json({ msg: "Usuário atualizado com sucesso!" });
   } catch (error) {
     res.status(500).json({ msg: error });
   }
@@ -202,6 +294,23 @@ app.post("/auth/login", async (req, res) => {
       .json({ msg: "Autenticação realizada com sucesso!", token, user });
   } catch (error) {
     res.status(500).json({ msg: error });
+  }
+});
+
+app.delete("/user/delete/:id", async (req, res) => {
+  const _id = req.params.id;
+
+  try {
+    // check if user exists
+    const user = await User.findByIdAndDelete(_id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "Usuário não encontrado!" });
+    }
+
+    res.status(200).json({ user });
+  } catch (err) {
+    return res.status(404).json({ msg: "Usuário não encontrado!" });
   }
 });
 
